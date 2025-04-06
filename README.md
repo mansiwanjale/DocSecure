@@ -62,7 +62,7 @@ DocSecure/
 ## Developed by :
 Mansi Wanjale
 Swati Kumbhar
-Shrutika Nalawade
+Shrutika Nalavade
 Tejal Khot
 [BTech Second Year Students]
 [Cummins College of Engineering, Pune]
