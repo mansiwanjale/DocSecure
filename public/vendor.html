@@ -143,14 +143,14 @@
       showQrBtn.addEventListener('click', function () {
         if (qrCodeContainer.innerHTML === '') {
           const qrImg = document.createElement('img');
-          qrImg.src = "http://localhost:3000/generate-qr/123";
+          qrImg.src = "/qr_codes/vendor_123.png";  // ✅ Static path
           qrImg.alt = "Vendor QR Code";
           qrCodeContainer.appendChild(qrImg);
         }
         qrCodeContainer.classList.toggle('hidden');
       });
 
-      fetch('http://localhost:3000/documents/123')
+      fetch('/documents/123')  // ✅ Assumes same origin, served by backend
         .then(response => response.json())
         .then(data => {
           const fileGrid = document.getElementById('fileGrid');
@@ -159,7 +159,7 @@
           } else {
             data.documents.forEach(file => {
               const fileName = file.split('/').pop();
-              const fileUrl = `http://localhost:3000${file}`;
+              const fileUrl = file;  // Already full path from backend
 
               const div = document.createElement('div');
               div.className = "file-item";
