@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Your Documents</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    color: #333;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h2 {
+    color: #222;
+    margin-bottom: 20px;
+}
+
+form {
+    background: white;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+input[type="file"] {
+    padding: 10px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+button {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #218838;
+}
+
+#message {
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+#uploadedList {
+    margin-top: 20px;
+    padding: 0;
+    list-style: none;
+    max-width: 400px;
+    width: 100%;
+}
+
+#uploadedList li {
+    background: white;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-left: 4px solid #007bff;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+    </style>
+</head>
+<body>
+    <h2>Upload Your Documents</h2>
+
+    <div id="message" style="color: red;"></div>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="files" id="fileInput" multiple required>
+        <br><br>
+        <button type="submit">Upload</button>
+    </form>
+
+    <ul id="uploadedList"></ul>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const vendorId = urlParams.get('vendorId');
+
+        const messageDiv = document.getElementById('message');
+        const fileInput = document.getElementById('fileInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadedList = document.getElementById('uploadedList');
+
+        if (!vendorId) {
+            messageDiv.innerText = "Error: Vendor ID is missing. Scan a valid QR code.";
+            uploadForm.style.display = 'none';
+        }
+
+        uploadForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const files = fileInput.files;
+            if (!files.length) {
+                messageDiv.innerText = "Please select files before uploading.";
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+            fetch(`http://localhost:3000/upload/${vendorId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.files) {
+                    messageDiv.style.color = 'green';
+                    messageDiv.innerText = "Files uploaded successfully!";
+                    uploadedList.innerHTML = '';
+                    data.files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = file;
+                        uploadedList.appendChild(listItem);
+                    });
+                } else {
+                    throw new Error("Upload failed");
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading files:', error);
+                messageDiv.style.color = 'red';
+                messageDiv.innerText = "Upload failed. Please try again.";
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vendor Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 30px;
+      background-color: #eef2f7;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 30px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #222;
+      border-left: 5px solid #4b7bec;
+      padding-left: 15px;
+    }
+
+    #showQrBtn {
+      padding: 10px 20px;
+      background-color: #4b7bec;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    #showQrBtn:hover {
+      background-color: #3867d6;
+    }
+
+    #qrCodeContainer {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #qrCodeContainer img {
+      width: 220px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .file-list-frame {
+      margin-top: 35px;
+      border-top: 2px solid #ddd;
+      padding-top: 25px;
+    }
+
+    .file-list-frame h3 {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+
+    .file-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 1px solid #ddd;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .file-item:hover {
+      background-color: #f1f3f6;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-icon {
+      font-size: 45px;
+      color: #4b7bec;
+      margin-bottom: 8px;
+    }
+
+    .file-name {
+      font-size: 14px;
+      color: #444;
+      word-wrap: break-word;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .file-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Vendor Dashboard</h2>
+
+    <button id="showQrBtn">Show QR Code</button>
+    <div id="qrCodeContainer" class="hidden"></div>
+
+    <div class="file-list-frame">
+      <h3>Uploaded Files:</h3>
+      <div id="fileGrid" class="file-grid"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const showQrBtn = document.getElementById('showQrBtn');
+      const qrCodeContainer = document.getElementById('qrCodeContainer');
+
+      showQrBtn.addEventListener('click', function () {
+        if (qrCodeContainer.innerHTML === '') {
+          const qrImg = document.createElement('img');
+          qrImg.src = "http://localhost:3000/generate-qr/123";
+          qrImg.alt = "Vendor QR Code";
+          qrCodeContainer.appendChild(qrImg);
+        }
+        qrCodeContainer.classList.toggle('hidden');
+      });
+
+      fetch('http://localhost:3000/documents/123')
+        .then(response => response.json())
+        .then(data => {
+          const fileGrid = document.getElementById('fileGrid');
+          if (data.documents.length === 0) {
+            fileGrid.innerHTML = "<p>No documents uploaded yet.</p>";
+          } else {
+            data.documents.forEach(file => {
+              const fileName = file.split('/').pop();
+              const fileUrl = `http://localhost:3000${file}`;
+
+              const div = document.createElement('div');
+              div.className = "file-item";
+              div.innerHTML = `
+                <div class="file-icon">📄</div>
+                <div class="file-name">${fileName}</div>
+              `;
+
+              div.addEventListener('click', () => {
+                const win = window.open('', '_blank');
+                win.document.write(`
+                  <iframe src="${fileUrl}" 
+                          style="width:100vw;height:100vh;border:none;"
+                          sandbox="allow-scripts allow-same-origin allow-forms"
+                          oncontextmenu="return false">
+                  </iframe>
+                `);
+              });
+
+              fileGrid.appendChild(div);
+            });
+          }
+        })
+        .catch(error => console.error("Error fetching documents:", error));
+    });
+  </script>
+</body>
+</html>
